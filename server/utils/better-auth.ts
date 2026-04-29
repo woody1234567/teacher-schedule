@@ -5,6 +5,9 @@ import { hash, verify } from 'argon2'
 import { getDatabase } from '../../server/db/index'
 import * as schema from '../../server/db/schema'
 
+const googleClientId = process.env.GOOGLE_CLIENT_ID
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+
 export const auth = betterAuth({
   database: drizzleAdapter(getDatabase(), {
     provider: 'pg',
@@ -15,6 +18,14 @@ export const auth = betterAuth({
       verification: schema.verifications,
     },
   }),
+  socialProviders: googleClientId && googleClientSecret
+    ? {
+        google: {
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+        },
+      }
+    : undefined,
   plugins: [bearer()],
   emailAndPassword: {
     enabled: true,
