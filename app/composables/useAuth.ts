@@ -4,10 +4,36 @@ import { authClient } from '../utils/auth-client'
 
 type AuthRole = 'student' | 'teacher'
 type AuthError = { message?: string }
+type AuthResponseData = {
+  user?: {
+    role?: AuthRole | null
+  } | null
+} | null | undefined
 type SocialSignIn = (payload: { provider: 'google', callbackURL?: string }) => Promise<{
   data: unknown
   error: AuthError | null
 }>
+
+function isAuthRole(role: unknown): role is AuthRole {
+  return role === 'student' || role === 'teacher'
+}
+
+export function getRoleLandingPath(role: AuthRole | null | undefined) {
+  if (role === 'teacher') {
+    return '/teacher'
+  }
+
+  if (role === 'student') {
+    return '/student'
+  }
+
+  return '/'
+}
+
+function getRoleFromAuthData(data: unknown) {
+  const role = (data as AuthResponseData)?.user?.role
+  return isAuthRole(role) ? role : null
+}
 
 export function useAuth() {
   const session = authClient.useSession()
@@ -18,21 +44,42 @@ export function useAuth() {
   const isTeacher = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'teacher')
   const isStudent = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'student')
 
+  async function getSessionRole() {
+    try {
+      const { data } = await authClient.getSession()
+      const role = (data?.user as { role?: unknown } | undefined)?.role
+      return isAuthRole(role) ? role : null
+    } catch {
+      return null
+    }
+  }
+
+  async function navigateToRoleHome(data: unknown) {
+    const role = getRoleFromAuthData(data) ?? await getSessionRole()
+    await navigateTo(getRoleLandingPath(role))
+  }
+
   async function login(email: string, password: string) {
     const { data, error } = await authClient.signIn.email({ email, password })
     if (error) throw new Error(error.message)
-    await navigateTo('/')
+    await navigateToRoleHome(data)
     return data
   }
 
-  async function register(email: string, password: string, name: string, _role: AuthRole = 'student') {
-    const { data, error } = await authClient.signUp.email({ email, password, name })
+  async function register(email: string, password: string, name: string, role: AuthRole = 'student') {
+    const selectedRole = isAuthRole(role) ? role : 'student'
+    const { data, error } = await authClient.signUp.email({
+      email,
+      password,
+      name,
+      role: selectedRole,
+    })
     if (error) throw new Error(error.message)
-    await navigateTo('/')
+    await navigateToRoleHome(data)
     return data
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(callbackURL = '/') {
     const signIn = authClient.signIn as typeof authClient.signIn & { social?: SocialSignIn }
 
     if (!signIn.social) {
@@ -41,9 +88,9 @@ export function useAuth() {
 
     const { data, error } = await signIn.social({
       provider: 'google',
-      callbackURL: '/',
+      callbackURL,
     })
-    if (error) throw new Error(error.message)
+    if (error) throw new Error(error.message || 'Google sign-in failed')
     return data
   }
 

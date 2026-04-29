@@ -8,7 +8,13 @@ import * as schema from '../../server/db/schema'
 const googleClientId = process.env.GOOGLE_CLIENT_ID
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
 
+if (!googleClientId || !googleClientSecret) {
+  throw new Error('Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET before starting Nuxt.')
+}
+
 export const auth = betterAuth({
+  appName: 'Teacher Schedule',
+  baseURL: process.env.BETTER_AUTH_URL,
   database: drizzleAdapter(getDatabase(), {
     provider: 'pg',
     schema: {
@@ -18,14 +24,23 @@ export const auth = betterAuth({
       verification: schema.verifications,
     },
   }),
-  socialProviders: googleClientId && googleClientSecret
-    ? {
-        google: {
-          clientId: googleClientId,
-          clientSecret: googleClientSecret,
-        },
-      }
-    : undefined,
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        required: false,
+        defaultValue: 'student',
+      },
+    },
+  },
+  socialProviders: {
+    google: {
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      scope: ['openid', 'email', 'profile'],
+      prompt: 'select_account',
+    },
+  },
   plugins: [bearer()],
   emailAndPassword: {
     enabled: true,

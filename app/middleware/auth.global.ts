@@ -17,6 +17,18 @@ const routeRoleMap: Record<string, AuthRole> = {
   '/teacher': 'teacher',
 }
 
+function getRoleLandingPath(role?: AuthRole | null) {
+  if (role === 'teacher') {
+    return '/teacher'
+  }
+
+  if (role === 'student') {
+    return '/student'
+  }
+
+  return '/'
+}
+
 function getRouteRoles(to: RouteLocationNormalized) {
   const meta = to.meta as AuthRouteMeta
   const metaRoles = meta.role
@@ -62,7 +74,7 @@ export async function authMiddlewareHandler(to: RouteLocationNormalized) {
 
   if (meta.auth === false) {
     if (session && to.path.startsWith('/auth')) {
-      return navigateTo('/', { replace: true })
+      return navigateTo(getRoleLandingPath(session.user?.role), { replace: true })
     }
     return
   }
@@ -74,7 +86,7 @@ export async function authMiddlewareHandler(to: RouteLocationNormalized) {
   const routeRoles = getRouteRoles(to)
 
   if (routeRoles.length > 0 && !routeRoles.includes(session.user?.role as AuthRole)) {
-    return navigateTo('/', { replace: true })
+    return navigateTo(getRoleLandingPath(session.user?.role), { replace: true })
   }
 }
 

@@ -8,6 +8,20 @@
       "when": 1777438244449,
       "tag": "0000_petite_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777451362630,
+      "tag": "0001_better_auth_google_oauth",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777452790285,
+      "tag": "0002_keen_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

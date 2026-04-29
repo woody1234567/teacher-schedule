@@ -5,7 +5,8 @@ import { authClient } from '~/app/utils/auth-client'
 vi.mock('~/app/utils/auth-client', () => ({
   authClient: {
     useSession: vi.fn().mockReturnValue({ data: null, isPending: false, error: null }),
-    signIn: { email: vi.fn() },
+    getSession: vi.fn(),
+    signIn: { email: vi.fn(), social: vi.fn() },
     signUp: { email: vi.fn() },
     signOut: vi.fn(),
   },
@@ -27,7 +28,7 @@ describe('useAuth', () => {
 
   describe('login', () => {
     it('calls signIn.email with correct credentials', async () => {
-      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: {} } as any, error: null })
+      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: { role: 'student' } } as any, error: null })
 
       await auth.login('user@example.com', 'Secret123!')
 
@@ -37,12 +38,20 @@ describe('useAuth', () => {
       })
     })
 
-    it('navigates to / on successful login', async () => {
-      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: {} } as any, error: null })
+    it('navigates to the teacher home on successful teacher login', async () => {
+      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: { role: 'teacher' } } as any, error: null })
 
       await auth.login('user@example.com', 'Secret123!')
 
-      expect(mockNavigateTo).toHaveBeenCalledWith('/')
+      expect(mockNavigateTo).toHaveBeenCalledWith('/teacher')
+    })
+
+    it('navigates to the student home on successful student login', async () => {
+      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: { role: 'student' } } as any, error: null })
+
+      await auth.login('user@example.com', 'Secret123!')
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/student')
     })
 
     it('throws with error message when sign in fails', async () => {
@@ -69,8 +78,21 @@ describe('useAuth', () => {
   // ─── register ──────────────────────────────────────────────────────────────
 
   describe('register', () => {
-    it('calls signUp.email with correct credentials', async () => {
-      vi.mocked(authClient.signUp.email).mockResolvedValue({ data: { user: {} } as any, error: null })
+    it('calls signUp.email with the selected role', async () => {
+      vi.mocked(authClient.signUp.email).mockResolvedValue({ data: { user: { role: 'teacher' } } as any, error: null })
+
+      await auth.register('user@example.com', 'Secret123!', 'Test User', 'teacher')
+
+      expect(authClient.signUp.email).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        password: 'Secret123!',
+        name: 'Test User',
+        role: 'teacher',
+      })
+    })
+
+    it('defaults registration role to student', async () => {
+      vi.mocked(authClient.signUp.email).mockResolvedValue({ data: { user: { role: 'student' } } as any, error: null })
 
       await auth.register('user@example.com', 'Secret123!', 'Test User')
 
@@ -78,15 +100,16 @@ describe('useAuth', () => {
         email: 'user@example.com',
         password: 'Secret123!',
         name: 'Test User',
+        role: 'student',
       })
     })
 
-    it('navigates to / on successful registration', async () => {
-      vi.mocked(authClient.signUp.email).mockResolvedValue({ data: { user: {} } as any, error: null })
+    it('navigates to the selected role home on successful registration', async () => {
+      vi.mocked(authClient.signUp.email).mockResolvedValue({ data: { user: { role: 'teacher' } } as any, error: null })
 
-      await auth.register('user@example.com', 'Secret123!', 'Test User')
+      await auth.register('user@example.com', 'Secret123!', 'Test User', 'teacher')
 
-      expect(mockNavigateTo).toHaveBeenCalledWith('/')
+      expect(mockNavigateTo).toHaveBeenCalledWith('/teacher')
     })
 
     it('throws with error message when sign up fails', async () => {
@@ -107,6 +130,41 @@ describe('useAuth', () => {
       await auth.register('user@example.com', 'pass', 'User').catch(() => {})
 
       expect(mockNavigateTo).not.toHaveBeenCalled()
+    })
+  })
+
+  // ─── google sign in ───────────────────────────────────────────────────────
+
+  describe('signInWithGoogle', () => {
+    it('starts the Google OAuth flow with the default callback URL', async () => {
+      vi.mocked(authClient.signIn.social).mockResolvedValue({ data: { url: '/api/auth/sign-in/social' }, error: null } as any)
+
+      await auth.signInWithGoogle()
+
+      expect(authClient.signIn.social).toHaveBeenCalledWith({
+        provider: 'google',
+        callbackURL: '/',
+      })
+    })
+
+    it('supports a custom callback URL', async () => {
+      vi.mocked(authClient.signIn.social).mockResolvedValue({ data: { url: '/api/auth/sign-in/social' }, error: null } as any)
+
+      await auth.signInWithGoogle('/teacher')
+
+      expect(authClient.signIn.social).toHaveBeenCalledWith({
+        provider: 'google',
+        callbackURL: '/teacher',
+      })
+    })
+
+    it('throws with error message when Google sign in fails', async () => {
+      vi.mocked(authClient.signIn.social).mockResolvedValue({
+        data: null,
+        error: { message: 'OAuth provider is not configured' },
+      } as any)
+
+      await expect(auth.signInWithGoogle()).rejects.toThrow('OAuth provider is not configured')
     })
   })
 
