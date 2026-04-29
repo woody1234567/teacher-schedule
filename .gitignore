@@ -12,6 +12,8 @@ node_modules
 # Logs
 logs
 *.log
+# Allow task logs for documentation
+!docs/superpowers/logs/
 
 # Misc
 .DS_Store
