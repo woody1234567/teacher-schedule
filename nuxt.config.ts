@@ -14,6 +14,15 @@ export default defineNuxtConfig({
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   },
 
+  // 處理 better-auth 依賴預熱
+  vite: {
+    optimizeDeps: {
+      include: [
+        'better-auth/vue',
+      ]
+    }
+  },  
+
   // Nuxt Server 配置
   nitro: {
     storage: {

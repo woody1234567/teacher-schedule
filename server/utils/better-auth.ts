@@ -2,8 +2,8 @@ import { betterAuth } from 'better-auth'
 import { bearer } from 'better-auth/plugins'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { hash, verify } from 'argon2'
-import { getDatabase } from '~/server/db/index'
-import * as schema from '~/server/db/schema'
+import { getDatabase } from '../../server/db/index'
+import * as schema from '../../server/db/schema'
 
 export const auth = betterAuth({
   database: drizzleAdapter(getDatabase(), {

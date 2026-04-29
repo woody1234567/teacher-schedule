@@ -2,7 +2,12 @@ import type { RouteLocationNormalized } from 'vue-router'
 import { authClient } from '../utils/auth-client'
 
 export async function authMiddlewareHandler(to: RouteLocationNormalized) {
-  const { data: session } = await authClient.getSession()
+  const headers = import.meta.server ? useRequestHeaders(['cookie']) as HeadersInit : undefined
+  const { data: session } = await authClient.getSession({
+    fetchOptions: {
+      headers
+    }
+  })
 
   if (to.meta.auth === false) {
     if (session && to.path.startsWith('/auth')) {

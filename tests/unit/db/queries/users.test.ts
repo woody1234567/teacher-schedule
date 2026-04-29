@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest'
-import { createUser, getUserByEmail, getUserById, updateUser, deleteUser } from '~/server/db/queries/users'
+import { createUser, getUserByEmail, getUserById, updateUser, deleteUser } from '@/server/db/queries/users'
 
 const ts = Date.now()
 const email = (tag: string) => `test-${ts}-${tag}@example.com`
