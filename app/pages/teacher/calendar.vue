@@ -147,7 +147,7 @@ function formatTime(dateStr: string) {
           <h2 class="text-base font-semibold text-highlighted">
             {{ formTitle }}
           </h2>
-          <EventForm
+          <CalendarEventForm
             :event="editingEvent"
             :loading="calendar.loading.value"
             @submit="saveEvent"

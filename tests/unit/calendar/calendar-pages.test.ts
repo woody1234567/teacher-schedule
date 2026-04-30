@@ -40,7 +40,7 @@ describe('calendar pages', () => {
     expect(source).toContain(':show-actions="true"')
     expect(source).toContain('@edit="startEdit"')
     expect(source).toContain('@delete="deleteEvent"')
-    expect(source).toContain('<EventForm')
+    expect(source).toContain('<CalendarEventForm')
     expect(source).toContain('@submit="saveEvent"')
     expect(source).toContain("await calendar.fetchEvents()")
     expect(source).toContain("await calendar.createEvent(data)")

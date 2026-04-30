@@ -11,17 +11,23 @@ interface TestEvent {
     params?: Record<string, string>
   }
   cookies?: Record<string, string>
+  headers?: Headers
 }
 
 const runId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
 const testPassword = 'TestPassword123!'
 const createdUserIds: string[] = []
 
-function createEvent(token?: string, body?: unknown, params?: Record<string, string>): TestEvent {
+function createEvent(token?: string, body?: unknown, params?: Record<string, string>): TestEvent & { headers: Headers } {
+  const headers = new Headers()
+  if (token) {
+    headers.set('authorization', `Bearer ${token}`)
+  }
   return {
     body,
     context: { params },
-    cookies: token ? { auth_token: token } : {},
+    cookies: token ? { 'better-auth.session_token': token, auth_token: token } : {},
+    headers,
   }
 }
 
