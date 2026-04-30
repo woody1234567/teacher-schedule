@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, varchar, boolean, json } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
+import { pgTable, text, timestamp, varchar, boolean, json, integer, serial } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -48,3 +49,30 @@ export const verifications = pgTable('verifications', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 })
+
+export const calendarEvents = pgTable('calendar_events', {
+  id: serial('id').primaryKey(),
+  teacherId: text('teacher_id').references(() => users.id).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time').notNull(),
+  isAvailable: boolean('is_available').default(true).notNull(),
+  maxStudents: integer('max_students').default(1),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  teacher: one(users, {
+    fields: [calendarEvents.teacherId],
+    references: [users.id],
+  }),
+}))
+
+export const usersCalendarRelations = relations(users, ({ many }) => ({
+  calendarEvents: many(calendarEvents),
+}))
+
+export type CalendarEvent = typeof calendarEvents.$inferSelect
+export type NewCalendarEvent = typeof calendarEvents.$inferInsert
