@@ -61,6 +61,15 @@ export async function listUsers(): Promise<PublicUser[]> {
   return await db.select(publicUserColumns).from(users).orderBy(asc(users.createdAt))
 }
 
+export async function listTeachers(): Promise<PublicUser[]> {
+  const db = getDatabase()
+  return await db
+    .select(publicUserColumns)
+    .from(users)
+    .where(eq(users.role, 'teacher'))
+    .orderBy(asc(users.createdAt))
+}
+
 export async function updateUser(id: string, data: UpdateUserInput): Promise<User | undefined> {
   const db = getDatabase()
   const result = await db.update(users).set({

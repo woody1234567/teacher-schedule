@@ -57,7 +57,7 @@ function bookSlot(slot: CalendarEvent) {
 <template>
   <UContainer class="py-10">
     <UButton
-      to="/student/teachers"
+      to="/student"
       icon="i-lucide-arrow-left"
       label="Back to Teachers"
       color="neutral"

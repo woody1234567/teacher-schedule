@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest'
-import { createUser, getUserByEmail, getUserById, updateUser, deleteUser } from '@/server/db/queries/users'
+import { createUser, getUserByEmail, getUserById, listTeachers, updateUser, deleteUser } from '@/server/db/queries/users'
 
 const ts = Date.now()
 const email = (tag: string) => `test-${ts}-${tag}@example.com`
@@ -171,6 +171,35 @@ describe('User Database Queries', { timeout: 15000 }, () => {
       const user = await getUserById('')
 
       expect(user).toBeUndefined()
+    })
+  })
+
+  // ─── listTeachers ──────────────────────────────────────────────────────────
+
+  describe('listTeachers', () => {
+    it('should return only users with the teacher role as public user data', async () => {
+      const teacher = await createUser({
+        email: email('teacher-list'),
+        name: 'Listed Teacher',
+        role: 'teacher',
+      })
+      const student = await createUser({
+        email: email('student-list'),
+        name: 'Hidden Student',
+        role: 'student',
+      })
+      createdIds.push(teacher.id, student.id)
+
+      const teachers = await listTeachers()
+
+      expect(teachers).toContainEqual(expect.objectContaining({
+        id: teacher.id,
+        email: teacher.email,
+        name: 'Listed Teacher',
+        role: 'teacher',
+      }))
+      expect(teachers.some(user => user.id === student.id)).toBe(false)
+      expect(teachers.find(user => user.id === teacher.id)).not.toHaveProperty('passwordHash')
     })
   })
 
