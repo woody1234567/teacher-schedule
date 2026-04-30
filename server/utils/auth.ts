@@ -19,6 +19,33 @@ export function generateSessionToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
+export async function authenticateRequest(event: any) {
+  const token = getCookie(event, 'auth_token')
+
+  if (!token) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+    })
+  }
+
+  const { auth } = await import('./better-auth')
+  const session = await auth.api.getSession({
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+    }),
+  })
+
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Session expired',
+    })
+  }
+
+  return session.user
+}
+
 export interface ValidationError {
   field: string
   message: string
