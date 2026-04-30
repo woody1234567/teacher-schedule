@@ -4,9 +4,17 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { session, logout } = useAuth()
 const user = computed(() => session.value?.data?.user)
 
-const items = computed<NavigationMenuItem[]>(() => [
-  { label: 'Home', to: '/' }
-])
+const items = computed<NavigationMenuItem[]>(() => {
+  const baseItems: NavigationMenuItem[] = [
+    { label: 'Home', to: '/' },
+  ]
+
+  if ((user.value as { role?: string } | undefined)?.role === 'admin') {
+    baseItems.push({ label: 'Admin', to: '/admin' })
+  }
+
+  return baseItems
+})
 
 async function handleLogout() {
   try {

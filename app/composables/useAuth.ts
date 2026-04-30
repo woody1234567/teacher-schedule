@@ -2,7 +2,8 @@ import { computed } from 'vue'
 
 import { authClient } from '../utils/auth-client'
 
-type AuthRole = 'student' | 'teacher'
+type AuthRole = 'student' | 'teacher' | 'admin'
+type RegistrationRole = Exclude<AuthRole, 'admin'>
 type AuthError = { message?: string }
 type AuthResponseData = {
   user?: {
@@ -15,10 +16,14 @@ type SocialSignIn = (payload: { provider: 'google', callbackURL?: string }) => P
 }>
 
 function isAuthRole(role: unknown): role is AuthRole {
-  return role === 'student' || role === 'teacher'
+  return role === 'student' || role === 'teacher' || role === 'admin'
 }
 
 export function getRoleLandingPath(role: AuthRole | null | undefined) {
+  if (role === 'admin') {
+    return '/admin'
+  }
+
   if (role === 'teacher') {
     return '/teacher'
   }
@@ -43,6 +48,7 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!user.value)
   const isTeacher = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'teacher')
   const isStudent = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'student')
+  const isAdmin = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'admin')
 
   async function getSessionRole() {
     try {
@@ -66,8 +72,8 @@ export function useAuth() {
     return data
   }
 
-  async function register(email: string, password: string, name: string, role: AuthRole = 'student') {
-    const selectedRole = isAuthRole(role) ? role : 'student'
+  async function register(email: string, password: string, name: string, role: RegistrationRole = 'student') {
+    const selectedRole = role === 'teacher' ? 'teacher' : 'student'
     const { data, error } = await authClient.signUp.email({
       email,
       password,
@@ -108,6 +114,7 @@ export function useAuth() {
     isAuthenticated,
     isTeacher,
     isStudent,
+    isAdmin,
     login,
     register,
     signInWithGoogle,

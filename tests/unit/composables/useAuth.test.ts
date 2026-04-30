@@ -54,6 +54,14 @@ describe('useAuth', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith('/student')
     })
 
+    it('navigates to the admin home on successful admin login', async () => {
+      vi.mocked(authClient.signIn.email).mockResolvedValue({ data: { user: { role: 'admin' } } as any, error: null })
+
+      await auth.login('admin@example.com', 'Secret123!')
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/admin')
+    })
+
     it('throws with error message when sign in fails', async () => {
       vi.mocked(authClient.signIn.email).mockResolvedValue({
         data: null,

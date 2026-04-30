@@ -30,6 +30,9 @@ export const auth = betterAuth({
         type: 'string',
         required: false,
         defaultValue: 'student',
+        transform: {
+          input: (role: unknown) => role === 'teacher' ? 'teacher' : 'student',
+        },
       },
     },
   },

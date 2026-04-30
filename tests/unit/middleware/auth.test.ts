@@ -13,7 +13,7 @@ vi.stubGlobal('navigateTo', mockNavigateTo)
 
 type RouteMeta = {
   auth?: false
-  role?: 'student' | 'teacher' | Array<'student' | 'teacher'>
+  role?: 'student' | 'teacher' | 'admin' | Array<'student' | 'teacher' | 'admin'>
 }
 const makeRoute = (path: string, meta: RouteMeta = {}) =>
   ({ path, meta }) as any
@@ -96,6 +96,29 @@ describe('auth global middleware', () => {
   })
 
   describe('role-protected routes', () => {
+    it('redirects authenticated admin away from /auth/* to admin home', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'admin@example.com', role: 'admin' } } as any,
+        error: null,
+      })
+
+      await authMiddlewareHandler(makeRoute('/auth/login', { auth: false }))
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/admin', { replace: true })
+    })
+
+    it('allows an admin through admin routes', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'admin@example.com', role: 'admin' } } as any,
+        error: null,
+      })
+
+      const result = await authMiddlewareHandler(makeRoute('/admin', { role: 'admin' }))
+
+      expect(result).toBeUndefined()
+      expect(mockNavigateTo).not.toHaveBeenCalled()
+    })
+
     it('allows a teacher through teacher routes', async () => {
       vi.mocked(authClient.getSession).mockResolvedValue({
         data: { user: { id: '1', email: 'teacher@example.com', role: 'teacher' } } as any,
@@ -151,6 +174,17 @@ describe('auth global middleware', () => {
       await authMiddlewareHandler(makeRoute('/teacher/calendar'))
 
       expect(mockNavigateTo).toHaveBeenCalledWith('/student', { replace: true })
+    })
+
+    it('uses path fallback roles for nested admin routes', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'teacher@example.com', role: 'teacher' } } as any,
+        error: null,
+      })
+
+      await authMiddlewareHandler(makeRoute('/admin/users'))
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/teacher', { replace: true })
     })
   })
 })

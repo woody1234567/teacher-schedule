@@ -1,7 +1,7 @@
 import type { RouteLocationNormalized } from 'vue-router'
 import { authClient } from '../utils/auth-client'
 
-type AuthRole = 'student' | 'teacher'
+type AuthRole = 'student' | 'teacher' | 'admin'
 type AuthRouteMeta = RouteLocationNormalized['meta'] & {
   auth?: false
   role?: AuthRole | AuthRole[]
@@ -13,11 +13,16 @@ type AuthSession = {
 } | null
 
 const routeRoleMap: Record<string, AuthRole> = {
+  '/admin': 'admin',
   '/student': 'student',
   '/teacher': 'teacher',
 }
 
 function getRoleLandingPath(role?: AuthRole | null) {
+  if (role === 'admin') {
+    return '/admin'
+  }
+
   if (role === 'teacher') {
     return '/teacher'
   }
