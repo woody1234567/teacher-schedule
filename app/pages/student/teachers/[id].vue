@@ -104,7 +104,7 @@ function bookSlot(slot: CalendarEvent) {
         />
 
         <div v-else class="grid gap-4">
-          <EventCard
+          <CalendarEventCard
             v-for="slot in availableSlots"
             :key="slot.id"
             :event="slot"

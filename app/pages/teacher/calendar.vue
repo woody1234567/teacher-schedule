@@ -58,6 +58,7 @@ async function deleteEvent(id: number) {
 
 function formatDate(dateStr: string) {
   return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
     month: 'short',
     day: 'numeric',
   }).format(new Date(dateStr))
@@ -65,6 +66,7 @@ function formatDate(dateStr: string) {
 
 function formatTime(dateStr: string) {
   return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(dateStr))

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CalendarEvent } from '~/app/composables/useCalendar'
+import type { CalendarEvent } from '~/composables/useCalendar'
 
 const props = withDefaults(defineProps<{
   event: CalendarEvent
@@ -26,6 +26,7 @@ const accentClass = computed(() => props.event.isAvailable ? 'border-s-success' 
 
 function formatDate(dateStr: string) {
   return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -34,6 +35,7 @@ function formatDate(dateStr: string) {
 
 function formatTime(dateStr: string) {
   return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(dateStr))

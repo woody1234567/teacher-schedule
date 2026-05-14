@@ -43,8 +43,13 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback
 }
 
-function toDateKey(date: Date) {
-  return date.toISOString().split('T')[0]
+function toDateKey(date: Date | string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(date))
 }
 
 export function useCalendar() {
@@ -147,7 +152,7 @@ export function useCalendar() {
 
   function getEventsByDate(date: Date) {
     const dateKey = toDateKey(date)
-    return events.value.filter(event => event.startTime.startsWith(dateKey))
+    return events.value.filter(event => toDateKey(event.startTime) === dateKey)
   }
 
   return {

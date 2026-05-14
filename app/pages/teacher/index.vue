@@ -11,14 +11,7 @@ const actionCards = [
     icon: 'i-lucide-calendar-days',
     to: '/teacher/calendar',
     buttonLabel: 'Open Calendar',
-  },
-  {
-    title: 'View Schedule',
-    description: 'Check upcoming teaching blocks and quickly adjust published time slots.',
-    icon: 'i-lucide-clock-3',
-    to: '/teacher/calendar',
-    buttonLabel: 'View Schedule',
-  },
+  }
 ]
 </script>
 
@@ -59,26 +52,5 @@ const actionCards = [
         </div>
       </UCard>
     </div>
-
-    <UCard class="mt-6">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="space-y-1">
-          <h2 class="text-base font-semibold text-highlighted">
-            Publish availability
-          </h2>
-          <p class="text-sm text-muted">
-            Students can view available slots from their dashboard after you publish them.
-          </p>
-        </div>
-
-        <UButton
-          to="/teacher/calendar"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-calendar-plus"
-          label="Add Time Slot"
-        />
-      </div>
-    </UCard>
   </UContainer>
 </template>

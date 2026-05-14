@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 import EventCard from './EventCard.vue'
-import type { CalendarEvent } from '~/app/composables/useCalendar'
+import type { CalendarEvent } from '~/composables/useCalendar'
 
 interface CalendarDay {
   date: Date
@@ -33,6 +33,7 @@ const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const monthYearLabel = computed(() => {
   return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
     month: 'long',
     year: 'numeric',
   }).format(currentDate.value)
@@ -40,7 +41,7 @@ const monthYearLabel = computed(() => {
 
 const selectedDateLabel = computed(() => {
   return selectedDate.value
-    ? new Intl.DateTimeFormat('zh-TW', { dateStyle: 'medium' }).format(selectedDate.value)
+    ? new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', dateStyle: 'medium' }).format(selectedDate.value)
     : ''
 })
 
@@ -49,7 +50,7 @@ const selectedDateEvents = computed(() => {
 
   const selectedKey = toDateKey(selectedDate.value)
   return props.events
-    .filter(event => event.startTime.startsWith(selectedKey))
+    .filter(event => toDateKey(event.startTime) === selectedKey)
     .toSorted((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 })
 
@@ -76,8 +77,13 @@ const calendarDays = computed<CalendarDay[]>(() => {
   return days
 })
 
-function toDateKey(date: Date) {
-  return date.toISOString().split('T')[0]
+function toDateKey(date: Date | string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(date))
 }
 
 function buildCalendarDay(date: Date, isCurrentMonth: boolean): CalendarDay {
@@ -92,7 +98,7 @@ function buildCalendarDay(date: Date, isCurrentMonth: boolean): CalendarDay {
     isSelected: dateKey === selectedKey,
     isToday: dateKey === todayKey,
     events: props.events
-      .filter(event => event.startTime.startsWith(dateKey))
+      .filter(event => toDateKey(event.startTime) === dateKey)
       .toSorted((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
   }
 }
