@@ -2,8 +2,8 @@ import { computed } from 'vue'
 
 import { authClient } from '../utils/auth-client'
 
-type AuthRole = 'student' | 'teacher' | 'admin'
-type RegistrationRole = Exclude<AuthRole, 'admin'>
+type AuthRole = 'student' | 'teacher' | 'admin' | 'visitor'
+type RegistrationRole = Exclude<AuthRole, 'admin' | 'visitor'>
 type AuthError = { message?: string }
 type AuthResponseData = {
   user?: {
@@ -16,22 +16,14 @@ type SocialSignIn = (payload: { provider: 'google', callbackURL?: string }) => P
 }>
 
 function isAuthRole(role: unknown): role is AuthRole {
-  return role === 'student' || role === 'teacher' || role === 'admin'
+  return role === 'student' || role === 'teacher' || role === 'admin' || role === 'visitor'
 }
 
 export function getRoleLandingPath(role: AuthRole | null | undefined) {
-  if (role === 'admin') {
-    return '/admin'
-  }
-
-  if (role === 'teacher') {
-    return '/teacher'
-  }
-
-  if (role === 'student') {
-    return '/student'
-  }
-
+  if (role === 'admin') return '/admin'
+  if (role === 'teacher') return '/teacher'
+  if (role === 'student') return '/student'
+  if (role === 'visitor') return '/visitor/role_pick'
   return '/'
 }
 
@@ -49,6 +41,7 @@ export function useAuth() {
   const isTeacher = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'teacher')
   const isStudent = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'student')
   const isAdmin = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'admin')
+  const isVisitor = computed(() => (user.value as { role?: AuthRole } | undefined)?.role === 'visitor')
 
   async function getSessionRole() {
     try {
@@ -106,6 +99,10 @@ export function useAuth() {
     await navigateTo('/auth/login')
   }
 
+  async function refreshSession() {
+    await authClient.getSession()
+  }
+
   return {
     session,
     user,
@@ -115,9 +112,11 @@ export function useAuth() {
     isTeacher,
     isStudent,
     isAdmin,
+    isVisitor,
     login,
     register,
     signInWithGoogle,
     logout,
+    refreshSession,
   }
 }
