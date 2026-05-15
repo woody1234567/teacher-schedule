@@ -1,5 +1,5 @@
 import { auth } from '~~/server/utils/better-auth'
-import { pickRoleForVisitor } from '~~/server/services/visitor'
+import { requestRoleForVisitor } from '~~/server/services/visitor'
 
 export default defineEventHandler(async (event) => {
   const session = await auth.api.getSession({
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   })
   const body = await readBody<{ role?: unknown }>(event)
   try {
-    return await pickRoleForVisitor(session, body.role)
+    return await requestRoleForVisitor(session, body.role)
   } catch (err: unknown) {
     if (err instanceof Error && 'statusCode' in err) {
       throw createError({
