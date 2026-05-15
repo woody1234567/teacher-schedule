@@ -29,9 +29,12 @@ export const auth = betterAuth({
       role: {
         type: 'string',
         required: false,
-        defaultValue: 'student',
+        defaultValue: 'visitor',
         transform: {
-          input: (role: unknown) => role === 'teacher' ? 'teacher' : 'student',
+          input: (role: unknown) => {
+            const valid = ['student', 'teacher', 'admin', 'visitor']
+            return valid.includes(role as string) ? (role as string) : 'visitor'
+          },
         },
       },
     },
