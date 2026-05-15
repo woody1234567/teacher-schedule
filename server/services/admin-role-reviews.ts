@@ -5,7 +5,7 @@ import {
   type RoleReview,
   type RoleReviewWithUser,
 } from '~~/server/db/queries/role-reviews'
-import { updateUserRole, type PublicUser, type UserRole } from '~~/server/db/queries/users'
+import { updateUserRole, type PublicUser } from '~~/server/db/queries/users'
 import { assertAdminSession, type AdminSession } from '~~/server/services/admin-users'
 
 function serviceError(message: string, statusCode: number) {
