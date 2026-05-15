@@ -21,7 +21,7 @@ export async function createRoleRequest(
     .insert(roleReviews)
     .values({ userId, requestedRole, status: 'pending', updatedAt: new Date() })
     .returning()
-  return review
+  return review!
 }
 
 export async function getPendingRequestByUserId(userId: string): Promise<RoleReview | undefined> {

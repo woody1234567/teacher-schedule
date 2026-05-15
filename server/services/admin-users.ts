@@ -8,7 +8,7 @@ import {
 export type AdminSession = {
   user?: {
     id?: string
-    role?: UserRole | null
+    role?: string | null
   } | null
 } | null
 
