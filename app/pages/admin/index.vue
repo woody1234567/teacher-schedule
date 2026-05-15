@@ -65,6 +65,16 @@ onMounted(() => {
       description="Manage user roles."
     />
 
+    <div class="mb-6">
+      <UButton
+        to="/admin/role-reviews"
+        variant="outline"
+        size="sm"
+      >
+        View Role Requests
+      </UButton>
+    </div>
+
     <UAlert
       v-if="error"
       color="error"
