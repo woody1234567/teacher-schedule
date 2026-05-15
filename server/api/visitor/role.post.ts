@@ -6,5 +6,15 @@ export default defineEventHandler(async (event) => {
     headers: toWebRequest(event).headers,
   })
   const body = await readBody<{ role?: unknown }>(event)
-  return await pickRoleForVisitor(session, body.role)
+  try {
+    return await pickRoleForVisitor(session, body.role)
+  } catch (err: unknown) {
+    if (err instanceof Error && 'statusCode' in err) {
+      throw createError({
+        statusCode: (err as { statusCode: number }).statusCode,
+        message: err.message,
+      })
+    }
+    throw err
+  }
 })
