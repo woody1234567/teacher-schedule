@@ -5,6 +5,7 @@ FROM node:22-alpine AS builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+RUN corepack prepare pnpm@10.32.1 --activate
 
 WORKDIR /app
 
