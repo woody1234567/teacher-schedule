@@ -1,5 +1,5 @@
 # 建立建置階段
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # 啟用 pnpm
 ENV PNPM_HOME="/pnpm"
@@ -17,7 +17,7 @@ COPY . .
 RUN pnpm run build
 
 # 建立執行階段
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
