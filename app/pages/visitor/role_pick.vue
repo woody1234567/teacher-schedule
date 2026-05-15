@@ -16,6 +16,7 @@ const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 const pendingRequest = ref<PendingRequest | null>(null)
+const toast = useToast()
 
 onMounted(async () => {
   try {
@@ -52,6 +53,13 @@ async function checkApproval() {
   const role = user?.role
   if (role && role !== 'visitor') {
     await navigateTo(role === 'teacher' ? '/teacher' : '/student', { replace: true })
+  } else {
+    toast.add({
+      title: 'Approval Pending',
+      description: 'Your request is still pending. Please wait for an admin to approve your role.',
+      color: 'warning',
+      icon: 'i-heroicons-clock'
+    })
   }
 }
 </script>
