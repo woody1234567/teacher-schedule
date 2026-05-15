@@ -29,11 +29,17 @@ export async function approveRoleRequest(
   if (!request) throw serviceError('Request not found', 404)
   if (request.status !== 'pending') throw serviceError('Request is not pending', 409)
 
-  const user = await updateUserRole(request.userId, request.requestedRole as UserRole)
+  const pickable: readonly string[] = ['teacher', 'student']
+  if (!pickable.includes(request.requestedRole)) {
+    throw serviceError(`Invalid stored role: ${request.requestedRole}`, 422)
+  }
+
+  const user = await updateUserRole(request.userId, request.requestedRole as 'teacher' | 'student')
   if (!user) throw serviceError('User not found', 404)
 
   const review = await updateRoleRequestStatus(requestId, 'approved', admin.id)
-  return { review: review!, user }
+  if (!review) throw serviceError('Request not found after update', 404)
+  return { review, user }
 }
 
 export async function rejectRoleRequest(
@@ -47,5 +53,6 @@ export async function rejectRoleRequest(
   if (request.status !== 'pending') throw serviceError('Request is not pending', 409)
 
   const review = await updateRoleRequestStatus(requestId, 'rejected', admin.id)
-  return review!
+  if (!review) throw serviceError('Request not found after update', 404)
+  return review
 }
