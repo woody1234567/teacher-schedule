@@ -4,12 +4,10 @@ import {
   type PickableRole,
   type RoleReview,
 } from '~~/server/db/queries/role-reviews'
-import type { UserRole } from '~~/server/db/queries/users'
-
 export type VisitorSession = {
   user?: {
     id?: string
-    role?: UserRole | null
+    role?: string | null
   } | null
 } | null
 
