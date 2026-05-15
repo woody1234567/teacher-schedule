@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 
 # 複製專案原始碼並進行建置
 COPY . .
-RUN pnpm run build
+RUN NITRO_PRESET=node-server pnpm run build
 
 # 建立執行階段
 FROM node:22-alpine
