@@ -74,5 +74,17 @@ export const usersCalendarRelations = relations(users, ({ many }) => ({
   calendarEvents: many(calendarEvents),
 }))
 
+export const roleReviews = pgTable('role_reviews', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  requestedRole: text('requested_role').notNull(),
+  status: text('status').notNull().default('pending'),
+  reviewedBy: text('reviewed_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
 export type CalendarEvent = typeof calendarEvents.$inferSelect
 export type NewCalendarEvent = typeof calendarEvents.$inferInsert
+export type RoleReview = typeof roleReviews.$inferSelect
+export type NewRoleReview = typeof roleReviews.$inferInsert
