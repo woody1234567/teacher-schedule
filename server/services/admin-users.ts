@@ -5,14 +5,14 @@ import {
   type UserRole,
 } from '~~/server/db/queries/users'
 
-type AdminSession = {
+export type AdminSession = {
   user?: {
     id?: string
     role?: UserRole | null
   } | null
 } | null
 
-const roles = ['student', 'teacher', 'admin'] as const
+const roles = ['student', 'teacher', 'admin', 'visitor'] as const
 
 function isUserRole(role: unknown): role is UserRole {
   return roles.includes(role as UserRole)

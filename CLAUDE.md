@@ -64,6 +64,13 @@ Next: Task 7 — Route guards / auth middleware
 
 Plans: `docs/superpowers/plans/` — overview, phase1, phase2, phase3
 
+## Zeabur Deployment
+- Project ID: `project-69f18f5d3846631902cc2c9c`
+- Service ID: `6a069b6eeb6e67d8262aab4b`
+- Git Service ID: `6a069cfaeb6e67d8262aab8e`
+- Git Repository: `https://github.com/woody1234567/teacher-schedule`
+- Git Branch: `master`
+
 ## Architecture Overview
 
 ### Auth (Better Auth)

@@ -2,7 +2,7 @@ import { asc, eq } from 'drizzle-orm'
 import { getDatabase } from '../index'
 import { users } from '../schema'
 
-export type UserRole = 'student' | 'teacher' | 'admin'
+export type UserRole = 'student' | 'teacher' | 'admin' | 'visitor'
 export type User = typeof users.$inferSelect
 export type PublicUser = Pick<User, 'id' | 'email' | 'name' | 'emailVerified' | 'image' | 'role' | 'createdAt' | 'updatedAt'>
 
