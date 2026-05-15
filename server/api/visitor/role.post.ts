@@ -2,10 +2,10 @@ import { auth } from '~~/server/utils/better-auth'
 import { requestRoleForVisitor } from '~~/server/services/visitor'
 
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({
-    headers: toWebRequest(event).headers,
-  })
   const body = await readBody<{ role?: unknown }>(event)
+  const session = await auth.api.getSession({
+    headers: new Headers(getRequestHeaders(event) as Record<string, string>),
+  })
   try {
     return await requestRoleForVisitor(session, body.role)
   } catch (err: unknown) {
