@@ -1,0 +1,37 @@
+services:
+  web:
+    build: .
+    container_name: teacher_schedule_web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # 請將 YOUR_PASSWORD 替換為你在 postgres 服務中設定的密碼
+      - DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@postgres:5432/teacher_schedule
+      # 請產生一組隨機字串作為 SECRET
+      - BETTER_AUTH_SECRET=YOUR_RANDOM_SECRET_STRING
+      # 請替換為你實際部署的網域
+      - BETTER_AUTH_URL=https://your-domain.com
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: teacher_schedule_db_prod
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: YOUR_PASSWORD
+      POSTGRES_DB: teacher_schedule
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_prod:
