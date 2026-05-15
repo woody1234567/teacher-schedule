@@ -1,6 +1,6 @@
 import { shallowRef } from 'vue'
 
-export type AdminUserRole = 'student' | 'teacher' | 'admin'
+export type AdminUserRole = 'student' | 'teacher' | 'admin' | 'visitor'
 
 export interface AdminUser {
   id: string
@@ -56,8 +56,7 @@ export function useAdminUsers() {
     error.value = ''
     setUserUpdating(userId, true)
 
-    const previousUsers = users.value
-    users.value = users.value.map(user => user.id === userId ? { ...user, role } : user)
+    // Removed optimistic update. Will only update UI after successful API call.
 
     try {
       const updated = await $fetch<AdminUser>(`/api/admin/users/${userId}/role`, {
@@ -68,8 +67,8 @@ export function useAdminUsers() {
       users.value = users.value.map(user => user.id === userId ? updated : user)
       return updated
     } catch (err) {
-      users.value = previousUsers
       error.value = getErrorMessage(err, 'Failed to update role')
+      console.error('[Admin API] Failed to update user role:', err)
       throw err
     } finally {
       setUserUpdating(userId, false)

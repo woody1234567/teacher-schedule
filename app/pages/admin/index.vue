@@ -15,6 +15,7 @@ const {
 } = useAdminUsers()
 
 const roleOptions = [
+  { label: 'Visitor', value: 'visitor' },
   { label: 'Student', value: 'student' },
   { label: 'Teacher', value: 'teacher' },
   { label: 'Admin', value: 'admin' },
@@ -24,30 +25,39 @@ const sortedUsers = computed(() =>
   [...users.value].sort((a, b) => a.email.localeCompare(b.email)),
 )
 
-function normalizeRole(value: unknown): 'student' | 'teacher' | 'admin' | undefined {
-  if (value === 'student' || value === 'teacher' || value === 'admin') {
-    return value
+function normalizeRole(value: unknown): 'student' | 'teacher' | 'admin' | 'visitor' | undefined {
+  if (typeof value === 'string') {
+    const v = value.toLowerCase()
+    if (v === 'student' || v === 'teacher' || v === 'admin' || v === 'visitor') {
+      return v as 'student' | 'teacher' | 'admin' | 'visitor'
+    }
   }
 
-  if (
-    typeof value === 'object'
-    && value !== null
-    && 'value' in value
-  ) {
-    return normalizeRole(value.value)
+  if (value && typeof value === 'object') {
+    if ('value' in value && (value as any).value !== undefined) {
+      return normalizeRole((value as any).value)
+    }
+    if ('target' in value && (value as any).target && typeof (value as any).target === 'object' && 'value' in (value as any).target) {
+      return normalizeRole((value as any).target.value)
+    }
   }
+  
+  return undefined
 }
 
 async function handleRoleChange(userId: string, value: unknown) {
   const role = normalizeRole(value)
   if (!role) {
+    console.error('[Admin UI] Role normalization failed. Received value:', value)
     return
   }
 
   try {
     await updateRole(userId, role)
-  } catch {
-    // The composable restores the previous role and exposes the error message.
+  } catch (err) {
+    console.error(`[Admin UI] handleRoleChange failed for user ${userId}:`, err)
+    // Reload users from the server to reset the UI state to what the database actually says
+    await loadUsers()
   }
 }
 
