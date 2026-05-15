@@ -1,89 +1,71 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('~/server/db/queries/users', () => ({
-  updateUserRole: vi.fn(),
+vi.mock('~/server/db/queries/role-reviews', () => ({
+  createRoleRequest: vi.fn(),
+  getPendingRequestByUserId: vi.fn(),
 }))
 
-import { updateUserRole } from '~/server/db/queries/users'
-import { pickRoleForVisitor } from '~/server/services/visitor'
+import { createRoleRequest, getPendingRequestByUserId } from '~/server/db/queries/role-reviews'
+import { requestRoleForVisitor } from '~/server/services/visitor'
 
-const mockUpdateUserRole = vi.mocked(updateUserRole)
+const makeSession = (role: string | null = 'visitor', id = 'u1') => ({
+  user: { id, role },
+})
 
-const visitorSession = {
-  user: { id: 'user-1', role: 'visitor' as const },
-}
-
-const mockPublicUser = {
-  id: 'user-1',
-  email: 'test@example.com',
-  name: null,
-  emailVerified: false,
-  image: null,
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-}
-
-describe('pickRoleForVisitor', () => {
+describe('requestRoleForVisitor', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('throws 401 when session is null', async () => {
-    await expect(pickRoleForVisitor(null, 'teacher')).rejects.toMatchObject({
-      statusCode: 401,
-    })
+    await expect(requestRoleForVisitor(null, 'teacher')).rejects.toMatchObject({ statusCode: 401 })
   })
 
   it('throws 401 when session has no user id', async () => {
-    await expect(
-      pickRoleForVisitor({ user: { id: undefined, role: 'visitor' } }, 'teacher'),
-    ).rejects.toMatchObject({ statusCode: 401 })
+    await expect(requestRoleForVisitor({ user: null }, 'teacher')).rejects.toMatchObject({ statusCode: 401 })
   })
 
-  it('throws 403 when user is not a visitor', async () => {
-    const session = { user: { id: 'user-1', role: 'student' as const } }
-    await expect(pickRoleForVisitor(session, 'teacher')).rejects.toMatchObject({
-      statusCode: 403,
-    })
+  it('throws 403 when user role is not visitor', async () => {
+    await expect(requestRoleForVisitor(makeSession('student'), 'teacher')).rejects.toMatchObject({ statusCode: 403 })
   })
 
-  it('throws 400 when role is admin', async () => {
-    await expect(pickRoleForVisitor(visitorSession, 'admin')).rejects.toMatchObject({
-      statusCode: 400,
-    })
+  it('throws 400 when requested role is invalid', async () => {
+    await expect(requestRoleForVisitor(makeSession(), 'admin')).rejects.toMatchObject({ statusCode: 400 })
   })
 
-  it('throws 400 when role is visitor', async () => {
-    await expect(pickRoleForVisitor(visitorSession, 'visitor')).rejects.toMatchObject({
-      statusCode: 400,
-    })
+  it('throws 400 when requested role is undefined', async () => {
+    await expect(requestRoleForVisitor(makeSession(), undefined)).rejects.toMatchObject({ statusCode: 400 })
   })
 
-  it('throws 400 when role is an unknown string', async () => {
-    await expect(pickRoleForVisitor(visitorSession, 'superadmin')).rejects.toMatchObject({
-      statusCode: 400,
-    })
+  it('returns existing pending request without creating a new one', async () => {
+    const existing = { id: 1, userId: 'u1', requestedRole: 'teacher', status: 'pending' }
+    vi.mocked(getPendingRequestByUserId).mockResolvedValueOnce(existing as any)
+
+    const result = await requestRoleForVisitor(makeSession(), 'student')
+
+    expect(createRoleRequest).not.toHaveBeenCalled()
+    expect(result).toBe(existing)
   })
 
-  it('throws 404 when updateUserRole returns undefined', async () => {
-    mockUpdateUserRole.mockResolvedValue(undefined)
-    await expect(pickRoleForVisitor(visitorSession, 'teacher')).rejects.toMatchObject({
-      statusCode: 404,
-    })
+  it('creates a role request for teacher when no pending exists', async () => {
+    vi.mocked(getPendingRequestByUserId).mockResolvedValueOnce(undefined)
+    const created = { id: 1, userId: 'u1', requestedRole: 'teacher', status: 'pending' }
+    vi.mocked(createRoleRequest).mockResolvedValueOnce(created as any)
+
+    const result = await requestRoleForVisitor(makeSession(), 'teacher')
+
+    expect(createRoleRequest).toHaveBeenCalledWith('u1', 'teacher')
+    expect(result).toBe(created)
   })
 
-  it('calls updateUserRole with correct args and returns user for teacher', async () => {
-    mockUpdateUserRole.mockResolvedValue(mockPublicUser)
-    const result = await pickRoleForVisitor(visitorSession, 'teacher')
-    expect(mockUpdateUserRole).toHaveBeenCalledWith('user-1', 'teacher')
-    expect(result).toEqual(mockPublicUser)
-  })
+  it('creates a role request for student when no pending exists', async () => {
+    vi.mocked(getPendingRequestByUserId).mockResolvedValueOnce(undefined)
+    const created = { id: 2, userId: 'u1', requestedRole: 'student', status: 'pending' }
+    vi.mocked(createRoleRequest).mockResolvedValueOnce(created as any)
 
-  it('calls updateUserRole with correct args and returns user for student', async () => {
-    mockUpdateUserRole.mockResolvedValue({ ...mockPublicUser, role: 'student' })
-    const result = await pickRoleForVisitor(visitorSession, 'student')
-    expect(mockUpdateUserRole).toHaveBeenCalledWith('user-1', 'student')
-    expect(result.role).toBe('student')
+    const result = await requestRoleForVisitor(makeSession(), 'student')
+
+    expect(createRoleRequest).toHaveBeenCalledWith('u1', 'student')
+    expect(result).toBe(created)
   })
 })
