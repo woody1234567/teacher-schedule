@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { reactive, shallowRef, watch } from 'vue'
-import type { CalendarEvent, CalendarEventInput } from '~/app/composables/useCalendar'
+import type { CalendarEvent, CalendarEventInput } from '~/composables/useCalendar'
 
 const props = withDefaults(defineProps<{
   event?: CalendarEvent | null
+  defaultDate?: Date | null
   loading?: boolean
 }>(), {
   event: null,
+  defaultDate: null,
   loading: false,
 })
 
@@ -38,14 +40,27 @@ function toDateTimeLocalValue(value?: string) {
 function resetForm() {
   form.title = props.event?.title ?? ''
   form.description = props.event?.description ?? ''
-  form.startTime = toDateTimeLocalValue(props.event?.startTime)
-  form.endTime = toDateTimeLocalValue(props.event?.endTime)
+  
+  if (props.event) {
+    form.startTime = toDateTimeLocalValue(props.event.startTime)
+    form.endTime = toDateTimeLocalValue(props.event.endTime)
+  } else if (props.defaultDate) {
+    const d = new Date(props.defaultDate)
+    d.setHours(9, 0, 0, 0)
+    form.startTime = toDateTimeLocalValue(d.toISOString())
+    d.setHours(10, 0, 0, 0)
+    form.endTime = toDateTimeLocalValue(d.toISOString())
+  } else {
+    form.startTime = ''
+    form.endTime = ''
+  }
+
   form.isAvailable = props.event?.isAvailable ?? true
   form.maxStudents = props.event?.maxStudents ?? 1
   error.value = ''
 }
 
-watch(() => props.event, resetForm, { immediate: true })
+watch(() => [props.event, props.defaultDate], resetForm, { immediate: true })
 
 function handleSubmit() {
   error.value = ''
@@ -88,6 +103,7 @@ function handleSubmit() {
   <UCard>
     <form class="space-y-4" @submit.prevent="handleSubmit">
       <UFormField label="Event Title" required>
+        
         <UInput
           v-model="form.title"
           placeholder="e.g., Math Class"
@@ -99,7 +115,7 @@ function handleSubmit() {
         <UTextarea
           v-model="form.description"
           autoresize
-          :rows="3"
+          :rows="5"
           placeholder="Event description..."
         />
       </UFormField>
@@ -108,7 +124,9 @@ function handleSubmit() {
         <UFormField label="Start Time" required>
           <UInput v-model="form.startTime" type="datetime-local" />
         </UFormField>
+      </div>
 
+      <div class="grid gap-4 md:grid-cols-2">
         <UFormField label="End Time" required>
           <UInput v-model="form.endTime" type="datetime-local" />
         </UFormField>
@@ -118,8 +136,7 @@ function handleSubmit() {
         <UFormField label="Max Students">
           <UInputNumber v-model="form.maxStudents" :min="1" />
         </UFormField>
-
-        <UFormField label="Available for Booking">
+        <UFormField label="Availabitity">
           <USwitch
             v-model="form.isAvailable"
             label="Mark as available"

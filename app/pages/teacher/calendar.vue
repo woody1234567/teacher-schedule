@@ -9,6 +9,7 @@ definePageMeta({
 
 const calendar = useCalendar()
 const showForm = shallowRef(false)
+const selectedDate = shallowRef<Date | null>(null)
 const editingEvent = shallowRef<CalendarEvent | null>(null)
 
 const formTitle = computed(() => editingEvent.value ? 'Edit Event' : 'New Event')
@@ -20,7 +21,20 @@ onMounted(async () => {
 
 function startEdit(event: CalendarEvent) {
   editingEvent.value = event
+  selectedDate.value = null
   showForm.value = false
+}
+
+function handleDateSelect(date: Date) {
+  editingEvent.value = null
+  selectedDate.value = date
+  showForm.value = true
+}
+
+function openNewEventForm() {
+  editingEvent.value = null
+  selectedDate.value = new Date()
+  showForm.value = true
 }
 
 function cancelEdit() {
@@ -95,6 +109,7 @@ function formatTime(dateStr: string) {
         :show-actions="true"
         @edit="startEdit"
         @delete="deleteEvent"
+        @date-select="handleDateSelect"
       />
 
       <aside class="space-y-4 lg:sticky lg:top-8 lg:self-start">
@@ -108,7 +123,7 @@ function formatTime(dateStr: string) {
                 block
                 icon="i-lucide-calendar-plus"
                 label="Add New Event"
-                @click="showForm = true"
+                @click="openNewEventForm"
               />
             </div>
 
@@ -151,6 +166,7 @@ function formatTime(dateStr: string) {
           </h2>
           <CalendarEventForm
             :event="editingEvent"
+            :default-date="selectedDate"
             :loading="calendar.loading.value"
             @submit="saveEvent"
             @cancel="cancelEdit"
