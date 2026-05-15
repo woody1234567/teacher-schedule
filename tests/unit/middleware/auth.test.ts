@@ -13,7 +13,7 @@ vi.stubGlobal('navigateTo', mockNavigateTo)
 
 type RouteMeta = {
   auth?: false
-  role?: 'student' | 'teacher' | 'admin' | Array<'student' | 'teacher' | 'admin'>
+  role?: 'student' | 'teacher' | 'admin' | 'visitor' | Array<'student' | 'teacher' | 'admin' | 'visitor'>
 }
 const makeRoute = (path: string, meta: RouteMeta = {}) =>
   ({ path, meta }) as any
@@ -185,6 +185,42 @@ describe('auth global middleware', () => {
       await authMiddlewareHandler(makeRoute('/admin/users'))
 
       expect(mockNavigateTo).toHaveBeenCalledWith('/teacher', { replace: true })
+    })
+  })
+
+  describe('visitor routing', () => {
+    it('redirects visitor navigating to a protected route to role_pick', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'new@example.com', role: 'visitor' } } as any,
+        error: null,
+      })
+
+      await authMiddlewareHandler(makeRoute('/dashboard'))
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/visitor/role_pick', { replace: true })
+    })
+
+    it('allows visitor through /visitor/role_pick without redirect', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'new@example.com', role: 'visitor' } } as any,
+        error: null,
+      })
+
+      const result = await authMiddlewareHandler(makeRoute('/visitor/role_pick'))
+
+      expect(result).toBeUndefined()
+      expect(mockNavigateTo).not.toHaveBeenCalled()
+    })
+
+    it('redirects visitor on auth page to /visitor/role_pick', async () => {
+      vi.mocked(authClient.getSession).mockResolvedValue({
+        data: { user: { id: '1', email: 'new@example.com', role: 'visitor' } } as any,
+        error: null,
+      })
+
+      await authMiddlewareHandler(makeRoute('/auth/login', { auth: false }))
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('/visitor/role_pick', { replace: true })
     })
   })
 })
