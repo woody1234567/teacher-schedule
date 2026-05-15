@@ -1,14 +1,17 @@
 import { and, desc, eq } from 'drizzle-orm'
 import { getDatabase } from '../index'
 import { roleReviews, users } from '../schema'
+import type { RoleReview } from '../schema'
 
 export type RoleRequestStatus = 'pending' | 'approved' | 'rejected'
 export type PickableRole = 'teacher' | 'student'
-export type RoleReview = typeof roleReviews.$inferSelect
+export type { RoleReview }
 export type RoleReviewWithUser = RoleReview & {
   user: { id: string; email: string; name: string | null }
 }
 
+// Caller (service layer) is responsible for validating that requestedRole is a PickableRole
+// before calling this function. The DB column is plain text with no database-level constraint.
 export async function createRoleRequest(
   userId: string,
   requestedRole: PickableRole,
