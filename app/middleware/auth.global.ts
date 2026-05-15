@@ -1,7 +1,7 @@
 import type { RouteLocationNormalized } from 'vue-router'
 import { authClient } from '../utils/auth-client'
 
-type AuthRole = 'student' | 'teacher' | 'admin'
+type AuthRole = 'student' | 'teacher' | 'admin' | 'visitor'
 type AuthRouteMeta = RouteLocationNormalized['meta'] & {
   auth?: false
   role?: AuthRole | AuthRole[]
@@ -19,18 +19,10 @@ const routeRoleMap: Record<string, AuthRole> = {
 }
 
 function getRoleLandingPath(role?: AuthRole | null) {
-  if (role === 'admin') {
-    return '/admin'
-  }
-
-  if (role === 'teacher') {
-    return '/teacher'
-  }
-
-  if (role === 'student') {
-    return '/student'
-  }
-
+  if (role === 'admin') return '/admin'
+  if (role === 'teacher') return '/teacher'
+  if (role === 'student') return '/student'
+  if (role === 'visitor') return '/visitor/role_pick'
   return '/'
 }
 
@@ -86,6 +78,11 @@ export async function authMiddlewareHandler(to: RouteLocationNormalized) {
 
   if (!session) {
     return navigateTo('/auth/login', { replace: true })
+  }
+
+  // Visitors are only allowed on the role-pick page
+  if (session.user?.role === 'visitor' && to.path !== '/visitor/role_pick') {
+    return navigateTo('/visitor/role_pick', { replace: true })
   }
 
   const routeRoles = getRouteRoles(to)
