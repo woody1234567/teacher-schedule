@@ -68,7 +68,6 @@ export function useAdminUsers() {
       return updated
     } catch (err) {
       error.value = getErrorMessage(err, 'Failed to update role')
-      console.error('[Admin API] Failed to update user role:', err)
       throw err
     } finally {
       setUserUpdating(userId, false)

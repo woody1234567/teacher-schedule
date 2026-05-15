@@ -41,7 +41,7 @@ describe('useAdminUsers', () => {
     expect(adminUsers.users.value[0]?.role).toBe('teacher')
   })
 
-  it('optimistically updates a role while only marking that user as updating', async () => {
+  it('keeps role unchanged while update is pending, then updates on success', async () => {
     let resolveUpdate: ((user: any) => void) | undefined
     mockFetch
       .mockResolvedValueOnce([
@@ -60,15 +60,16 @@ describe('useAdminUsers', () => {
     expect(adminUsers.loading.value).toBe(false)
     expect(adminUsers.isUpdatingUser('u1')).toBe(true)
     expect(adminUsers.isUpdatingUser('u2')).toBe(false)
-    expect(adminUsers.users.value[0]?.role).toBe('teacher')
+    expect(adminUsers.users.value[0]?.role).toBe('student')
 
     resolveUpdate?.({ id: 'u1', email: 'a@example.com', name: 'A', role: 'teacher' })
     await updatePromise
 
+    expect(adminUsers.users.value[0]?.role).toBe('teacher')
     expect(adminUsers.isUpdatingUser('u1')).toBe(false)
   })
 
-  it('restores the previous role when updating fails', async () => {
+  it('keeps role unchanged when updating fails', async () => {
     mockFetch
       .mockResolvedValueOnce([
         { id: 'u1', email: 'a@example.com', name: 'A', role: 'student' },

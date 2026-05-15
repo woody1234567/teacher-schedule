@@ -25,39 +25,31 @@ const sortedUsers = computed(() =>
   [...users.value].sort((a, b) => a.email.localeCompare(b.email)),
 )
 
-function normalizeRole(value: unknown): 'student' | 'teacher' | 'admin' | 'visitor' | undefined {
+type ValidRole = 'student' | 'teacher' | 'admin' | 'visitor'
+
+function normalizeRole(value: unknown): ValidRole | undefined {
   if (typeof value === 'string') {
     const v = value.toLowerCase()
     if (v === 'student' || v === 'teacher' || v === 'admin' || v === 'visitor') {
-      return v as 'student' | 'teacher' | 'admin' | 'visitor'
+      return v as ValidRole
     }
   }
 
-  if (value && typeof value === 'object') {
-    if ('value' in value && (value as any).value !== undefined) {
-      return normalizeRole((value as any).value)
-    }
-    if ('target' in value && (value as any).target && typeof (value as any).target === 'object' && 'value' in (value as any).target) {
-      return normalizeRole((value as any).target.value)
-    }
+  if (value && typeof value === 'object' && 'value' in value) {
+    return normalizeRole((value as { value: unknown }).value)
   }
-  
+
   return undefined
 }
 
 async function handleRoleChange(userId: string, value: unknown) {
   const role = normalizeRole(value)
-  if (!role) {
-    console.error('[Admin UI] Role normalization failed. Received value:', value)
-    return
-  }
+  if (!role) return
 
   try {
     await updateRole(userId, role)
-  } catch (err) {
-    console.error(`[Admin UI] handleRoleChange failed for user ${userId}:`, err)
-    // Reload users from the server to reset the UI state to what the database actually says
-    await loadUsers()
+  } catch {
+    // updateRole already sets error.value; no optimistic UI state to restore
   }
 }
 
